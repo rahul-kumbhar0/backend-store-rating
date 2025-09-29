@@ -59,6 +59,11 @@ const submitRating = async (req, res) => {
   const { rating, storeId } = req.body;
 
   try {
+    // Ensure user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
     console.log('=== Submit Rating Debug ===');
     console.log('User ID:', req.user.id);
     console.log('Store ID from request:', storeId);
@@ -66,31 +71,17 @@ const submitRating = async (req, res) => {
 
     // Check if store exists
     const store = await Store.findByPk(storeId);
-    console.log('Store found:', store);
-
     if (!store) {
-      return res.status(404).json({ 
-        message: 'Store not found',
-        storeId: storeId,
-        debug: 'Make sure this store ID exists in the database'
-      });
+      return res.status(404).json({ message: 'Store not found' });
     }
 
     // Check if user has already rated this store
     const existingRating = await Rating.findOne({
-      where: {
-        userId: req.user.id,
-        storeId: storeId
-      }
+      where: { userId: req.user.id, storeId: storeId }
     });
 
-    console.log('Existing rating:', existingRating);
-
     if (existingRating) {
-      return res.status(400).json({ 
-        message: 'You have already rated this store',
-        existingRatingId: existingRating.id
-      });
+      return res.status(400).json({ message: 'You have already rated this store' });
     }
 
     // Create rating
@@ -100,15 +91,10 @@ const submitRating = async (req, res) => {
       storeId: storeId
     });
 
-    console.log('New rating created:', newRating);
-
     res.status(201).json(newRating);
   } catch (error) {
     console.error('Submit rating error:', error);
-    res.status(500).json({ 
-      message: 'Server error',
-      error: error.message 
-    });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
