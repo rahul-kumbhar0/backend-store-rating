@@ -11,7 +11,7 @@ const Rating = sequelize.define('Rating', {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Users',
+        model: 'users', // Updated to match tableName
         key: 'id'
       }
     },
@@ -19,7 +19,7 @@ const Rating = sequelize.define('Rating', {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Stores',
+        model: 'stores', // Updated to match tableName
         key: 'id'
       }
     },
@@ -34,7 +34,6 @@ const Rating = sequelize.define('Rating', {
   }, {
     timestamps: true,
     tableName: 'ratings',
-    // Add composite unique constraint
     indexes: [
       {
         unique: true,

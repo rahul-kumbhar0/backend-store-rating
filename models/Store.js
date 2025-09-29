@@ -8,7 +8,7 @@ const Store = sequelize.define('Store', {
         autoIncrement: true
     },
     name: {
-        type: DataTypes.STRING(60),
+        type: DataTypes.STRING,
         allowNull: false,
         validate: {
             len: [20, 60], 
@@ -20,12 +20,12 @@ const Store = sequelize.define('Store', {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-            model: 'Users',
+            model: 'users', // Updated to match tableName
             key: 'id'
         }
     },
     email: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING,
         allowNull: false,
         unique: true,
         validate: {
@@ -41,7 +41,7 @@ const Store = sequelize.define('Store', {
     }
 }, {
     timestamps: true,
-    tableName: 'Stores'
+    tableName: 'stores' // Changed to lowercase
 });
 
 module.exports = Store;
