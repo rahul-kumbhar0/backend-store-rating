@@ -27,7 +27,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
-      len: [8, 16],
+      notEmpty: true,
       isValidPassword(value) {
         if (!/[A-Z]/.test(value)) {
           throw new Error('Password must contain at least one uppercase letter');
