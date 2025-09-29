@@ -11,7 +11,7 @@ const Rating = sequelize.define('Rating', {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'users', 
+        model: 'Users',  // ← Changed from 'users' to 'Users'
         key: 'id'
       }
     },
@@ -19,7 +19,7 @@ const Rating = sequelize.define('Rating', {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'stores', 
+        model: 'Stores',  // ← Changed from 'stores' to 'Stores'
         key: 'id'
       }
     },

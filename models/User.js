@@ -27,7 +27,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
-      notEmpty: true,
+      // Custom validator for uppercase and special character
       isValidPassword(value) {
         if (!/[A-Z]/.test(value)) {
           throw new Error('Password must contain at least one uppercase letter');
@@ -50,8 +50,6 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: 'NORMAL_USER'
   }
-}, {
-  tableName: 'users'
 });
 
 module.exports = User;

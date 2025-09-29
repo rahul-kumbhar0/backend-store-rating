@@ -20,7 +20,7 @@ const Store = sequelize.define('Store', {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-            model: 'users', // Updated to match tableName
+            model: 'Users', // Updated to match tableName
             key: 'id'
         }
     },
@@ -41,7 +41,7 @@ const Store = sequelize.define('Store', {
     }
 }, {
     timestamps: true,
-    tableName: 'stores' // Changed to lowercase
+    tableName: 'Stores' // Changed to lowercase
 });
 
 module.exports = Store;
