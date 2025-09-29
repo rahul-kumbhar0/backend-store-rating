@@ -184,13 +184,6 @@ Built with Node.js and PostgreSQL, the API ensures secure, scalable, and maintai
 - **Start Command**: `npm start`
 - **Environment Variables**: Configured in Render dashboard (DB_* and others)
 
-## Challenges Overcome
-1. **Database Migration**: Switched from MySQL to PostgreSQL for easier deployment on Render; updated Sequelize models and references.
-2. **Foreign Key Constraints**: Fixed case sensitivity issues in model associations (e.g., 'Users' vs 'users').
-3. **Authentication and Authorization**: Implemented JWT-based auth with role checks; ensured secure token handling.
-4. **Validation Errors**: Resolved password hashing conflicts by removing redundant model validations and relying on Joi middleware.
-5. **CORS Configuration**: Set up multi-origin CORS for production (Vercel frontend).
-6. **Deployment Issues**: Debugged ETIMEDOUT and module errors; ensured proper env vars and entry points.
 
 ## Testing
 1. **Manual Testing**:
