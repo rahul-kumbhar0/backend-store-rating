@@ -1,21 +1,72 @@
 const { Store, Rating, User } = require('../models');
 const bcrypt = require('bcryptjs');
-const { Op } = require('sequelize');
+
 
 // @desc    Get store owner dashboard
 // @route   GET /api/store-owner/dashboard
 // @access  Private/Store Owner
 const getStoreDashboard = async (req, res) => {
   try {
-    // Find store owned by this user
+    console.log('=== STORE OWNER DASHBOARD DEBUG ===');
+    console.log('1. Request user:', req.user);
+    console.log('2. User ID from token:', req.user.id);
+    console.log('3. User role from token:', req.user.role);
+    
+    // Let's check what stores exist in the database
+    const allStores = await Store.findAll({
+      attributes: ['id', 'name', 'ownerId']
+    });
+    console.log('4. All stores in DB:', allStores.map(s => ({
+      id: s.id,
+      name: s.name,
+      ownerId: s.ownerId
+    })));
+    
+    // Let's check what users exist as store owners
+    const storeOwners = await User.findAll({
+      where: { role: 'STORE_OWNER' },
+      attributes: ['id', 'name', 'role']
+    });
+    console.log('5. All store owners:', storeOwners);
+    
+    // Now let's search for stores owned by this user
+    console.log('6. Searching for store with ownerId =', req.user.id);
+    
     const store = await Store.findOne({
       where: { ownerId: req.user.id }
     });
-
+    
+    console.log('7. Store found by ownerId:', store);
+    
     if (!store) {
-      return res.status(404).json({ message: 'No store found for this owner' });
+      // Let's do a more thorough search
+      console.log('8. Doing thorough search...');
+      
+      // Check if there are ANY stores with ownerId not null
+      const storesWithOwners = await Store.findAll({
+        where: {
+          ownerId: {
+            [require('sequelize').Op.not]: null
+          }
+        }
+      });
+      console.log('9. Stores with owners:', storesWithOwners);
+      
+      return res.status(404).json({ 
+        message: 'No store found for this owner',
+        debug: {
+          userId: req.user.id,
+          userName: req.user.name,
+          userRole: req.user.role,
+          totalStoresInDB: allStores.length,
+          storesWithOwners: storesWithOwners.length,
+          searchedOwnerId: req.user.id
+        }
+      });
     }
-
+    
+    console.log('10. Found store, now getting ratings...');
+    
     // Get all ratings for this store
     const ratings = await Rating.findAll({
       where: { storeId: store.id },
@@ -25,12 +76,14 @@ const getStoreDashboard = async (req, res) => {
       }],
       order: [['createdAt', 'DESC']]
     });
-
+    
+    console.log('11. Ratings found:', ratings.length);
+    
     // Calculate average rating
     const totalRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);
     const averageRating = ratings.length > 0 ? (totalRating / ratings.length).toFixed(2) : '0.00';
-
-    res.json({
+    
+    const result = {
       store: {
         id: store.id,
         name: store.name,
@@ -39,14 +92,20 @@ const getStoreDashboard = async (req, res) => {
       },
       averageRating: parseFloat(averageRating),
       totalRatings: ratings.length,
-      recentRatings: ratings.slice(0, 10) // Last 10 ratings
-    });
+      recentRatings: ratings.slice(0, 10)
+    };
+    
+    console.log('12. Final result:', result);
+    res.json(result);
+    
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Store dashboard error:', error);
+    res.status(500).json({ 
+      message: 'Server error',
+      error: error.message 
+    });
   }
 };
-
 // @desc    Get ratings for store owner's store
 // @route   GET /api/store-owner/ratings
 // @access  Private/Store Owner

@@ -27,18 +27,24 @@ const getDashboardStats = async (req, res) => {
 // @access  Private/Admin
 const getUsers = async (req, res) => {
   try {
-    const { name, email, role } = req.query;
+    const { name, email, role, address, sortBy, order } = req.query;
     const whereClause = {};
 
     // Apply filters if provided
     if (name) whereClause.name = { [Op.like]: `%${name}%` };
     if (email) whereClause.email = { [Op.like]: `%${email}%` };
     if (role) whereClause.role = role;
+    if (address) whereClause.address = { [Op.like]: `%${address}%` };
+
+    // Sorting
+    const allowedUserSort = ['name', 'email', 'role', 'address', 'createdAt'];
+    const sortColumn = allowedUserSort.includes(sortBy) ? sortBy : 'createdAt';
+    const sortOrder = (order && order.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
 
     const users = await User.findAll({
       where: whereClause,
       attributes: { exclude: ['password'] },
-      order: [['createdAt', 'DESC']]
+      order: [[sortColumn, sortOrder]]
     });
 
     res.json(users);
@@ -134,39 +140,56 @@ const createUser = async (req, res) => {
 // @access  Private/Admin
 const getStores = async (req, res) => {
   try {
-    const { name, email } = req.query;
+    const { name, email, address, sortBy, order } = req.query;
     const whereClause = {};
 
     // Apply filters if provided
     if (name) whereClause.name = { [Op.like]: `%${name}%` };
     if (email) whereClause.email = { [Op.like]: `%${email}%` };
+    if (address) whereClause.address = { [Op.like]: `%${address}%` };
 
+    // Base fetch with owner include
     const stores = await Store.findAll({
       where: whereClause,
       include: [{
         model: User,
         as: 'owner',
         attributes: ['id', 'name', 'email']
-      }],
-      order: [['createdAt', 'DESC']]
+      }]
     });
 
-    // Add average rating to each store
+    // Compute average ratings
     const storesWithRatings = await Promise.all(stores.map(async (store) => {
-      const ratings = await Rating.findAll({
-        where: { storeId: store.id }
-      });
-      
+      const ratings = await Rating.findAll({ where: { storeId: store.id } });
       const totalRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);
       const averageRating = ratings.length > 0 ? totalRating / ratings.length : 0;
-      
+
       return {
         ...store.toJSON(),
-        averageRating: averageRating.toFixed(2)
+        averageRating: Number(averageRating.toFixed(2))
       };
     }));
 
-    res.json(storesWithRatings);
+    // Sorting
+    const sortKey = sortBy || 'createdAt';
+    const sortDir = (order && order.toUpperCase() === 'ASC') ? 1 : -1;
+
+    const sorted = [...storesWithRatings].sort((a, b) => {
+      if (sortKey === 'averageRating') {
+        return (a.averageRating - b.averageRating) * sortDir;
+      }
+      if (a[sortKey] == null && b[sortKey] == null) return 0;
+      if (a[sortKey] == null) return -1 * sortDir;
+      if (b[sortKey] == null) return 1 * sortDir;
+      if (typeof a[sortKey] === 'string') {
+        return a[sortKey].localeCompare(b[sortKey]) * sortDir;
+      }
+      if (a[sortKey] > b[sortKey]) return 1 * sortDir;
+      if (a[sortKey] < b[sortKey]) return -1 * sortDir;
+      return 0;
+    });
+
+    res.json(sorted);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -205,11 +228,61 @@ const createStore = async (req, res) => {
   }
 };
 
+// assign owner to a store
+// @desc    Assign owner to store
+// @route   PUT /api/admin/stores/:id/owner
+// @access  Private/Admin
+const assignStoreOwner = async (req, res) => {
+  try {
+    const { ownerId } = req.body;
+    const storeId = req.params.id;
+
+    console.log('=== Assign Store Owner ===');
+    console.log('Store ID:', storeId);
+    console.log('Owner ID:', ownerId);
+
+    // Check if user exists and is a store owner
+    const user = await User.findByPk(ownerId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.role !== 'STORE_OWNER') {
+      return res.status(400).json({ message: 'User must be a store owner' });
+    }
+
+    // Update store with ownerId
+    const [updatedRows] = await Store.update(
+      { ownerId: ownerId },
+      { where: { id: storeId } }
+    );
+
+    if (updatedRows === 0) {
+      return res.status(404).json({ message: 'Store not found' });
+    }
+
+    // Verify the update
+    const updatedStore = await Store.findByPk(storeId);
+    console.log('Updated store:', updatedStore);
+
+    res.json({ 
+      message: 'Store owner assigned successfully',
+      store: updatedStore
+    });
+  } catch (error) {
+    console.error('Assign store owner error:', error);
+    res.status(500).json({ 
+      message: 'Server error',
+      error: error.message 
+    });
+  }
+};
 module.exports = {
   getDashboardStats,
   getUsers,
   getUserById,
   createUser,
   getStores,
-  createStore
+  createStore,
+  assignStoreOwner
 };

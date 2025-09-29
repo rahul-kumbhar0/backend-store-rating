@@ -1,4 +1,4 @@
-const expres = require('express')
+const express = require('express')
 const { protect } = require('../middleware/auth');
 
 const {
@@ -11,7 +11,7 @@ const {
 const {ratingValidation} = require('../middleware/validation');
 
 
-const router = expres.Router();
+const router = express.Router();
 
 router.use(protect)
 

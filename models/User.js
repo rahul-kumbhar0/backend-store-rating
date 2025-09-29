@@ -25,8 +25,19 @@ const User = sequelize.define('User', {
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false
-    // Note: Removed complex regex validation for now to avoid issues
+    allowNull: false,
+    validate: {
+      len: [8, 16],
+      // Custom validator for uppercase and special character
+      isValidPassword(value) {
+        if (!/[A-Z]/.test(value)) {
+          throw new Error('Password must contain at least one uppercase letter');
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+          throw new Error('Password must contain at least one special character');
+        }
+      }
+    }
   },
   address: {
     type: DataTypes.STRING,

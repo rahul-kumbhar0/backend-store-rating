@@ -52,49 +52,6 @@ const getStores = async (req, res) => {
   }
 };
 
-
-//submit rating for a store
-
-// const submitRating = async (req, res) =>{
-//     try {
-//         const {rating, storeId} = req.body;
-//         if(!store){
-//             return res.status(400).json({
-//                 message:"Store not found"
-//             });
-//         }
-
-//         //check the user are already rated on this store
-//         const existingRating = await Rating.findOne({
-//             where:{
-//                 userId: req.user.id,
-//                 storeId:storeId
-//             }
-//         });
-
-//         if(existingRating){
-//             return res.status(400).json({
-//                 message:'You have already rated this store'
-//             });
-//         }
-
-//         //create new rating
-//         const newRating = await Rating.create({
-//             rating,
-//             userId: req.user.id,
-//             storeId: storeId
-//         });
-
-//         res.status(201).josn(newRating);
-
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({
-//             message:'Server error'
-//         });
-//     }
-// };
-
 // @desc    Submit rating for a store
 // @route   POST /api/user/ratings
 // @access  Private

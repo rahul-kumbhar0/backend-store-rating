@@ -24,15 +24,17 @@ const initModels = () => {
     foreignKey: 'storeId'
   });
 
-  // For store ownership
+  // For store ownership - CORRECTED ASSOCIATIONS
   User.hasOne(Store, {
     foreignKey: 'ownerId',
-    as: 'ownedStore'
+    as: 'ownedStore',
+    onDelete: 'SET NULL'
   });
 
   Store.belongsTo(User, {
     foreignKey: 'ownerId',
-    as: 'owner'
+    as: 'owner',
+    onDelete: 'SET NULL'
   });
 };
 

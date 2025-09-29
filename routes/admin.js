@@ -25,5 +25,6 @@ router.post('/users', registerValidation, adminController.createUser);
 // Stores
 router.get('/stores', adminController.getStores);
 router.post('/stores', storeValidation, adminController.createStore);
+router.put('/stores/:id/owner', adminController.assignStoreOwner);
 
 module.exports = router;

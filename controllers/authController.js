@@ -17,6 +17,7 @@ const register = async (req, res) => {
 
   try {
     // Check if user exists
+    
     const userExists = await User.findOne({ where: { email } });
 
     if (userExists) {

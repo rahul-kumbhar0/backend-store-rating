@@ -108,6 +108,7 @@ const storeValidation = (req, res, next) => {
 // Rating validation
 // Rating validation
 // Rating validation
+// In middleware/validation.js, modify ratingValidation:
 const ratingValidation = (req, res, next) => {
   const schema = Joi.object({
     rating: Joi.number().integer().min(1).max(5).required()
@@ -117,14 +118,22 @@ const ratingValidation = (req, res, next) => {
         'number.integer': 'Rating must be an integer',
         'any.required': 'Rating is required'
       }),
-    storeId: Joi.number().integer().required()
+    storeId: Joi.number().integer()
+      .when('$requestMethod', {
+        is: Joi.string().valid('POST'),
+        then: Joi.required(),
+        otherwise: Joi.optional()
+      })
       .messages({
         'number.base': 'Store ID must be a number',
         'any.required': 'Store ID is required'
       })
   });
 
-  const { error } = schema.validate(req.body, { abortEarly: false });
+  const { error } = schema.validate(req.body, { 
+    abortEarly: false,
+    context: { requestMethod: req.method }
+  });
 
   if (error) {
     const errors = error.details.map(detail => detail.message);
