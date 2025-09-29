@@ -9,11 +9,17 @@ const cors = require('cors');
 const app = express();
 // Load env vars
 dotenv.config();
+const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000'];
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
-
 // Route files
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
